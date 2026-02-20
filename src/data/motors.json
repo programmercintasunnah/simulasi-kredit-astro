@@ -1,0 +1,29 @@
+{
+  "motors": [
+    { "id": 1, "name": "Honda Beat Street", "price": 18500000, "category": "matic" },
+    { "id": 2, "name": "Honda Beat CBS", "price": 19200000, "category": "matic" },
+    { "id": 3, "name": "Honda Scoopy Stylish", "price": 22500000, "category": "matic" },
+    { "id": 4, "name": "Honda PCX 160", "price": 35000000, "category": "matic" },
+    { "id": 5, "name": "Honda Vario 160", "price": 28000000, "category": "matic" },
+    { "id": 6, "name": "Honda Vario 125", "price": 23000000, "category": "matic" },
+    { "id": 7, "name": "Yamaha Nmax", "price": 34000000, "category": "matic" },
+    { "id": 8, "name": "Yamaha Lexi", "price": 25000000, "category": "matic" },
+    { "id": 9, "name": "Yamaha Aerox", "price": 28000000, "category": "matic" },
+    { "id": 10, "name": "Yamaha Gear 125", "price": 20000000, "category": "matic" },
+    { "id": 11, "name": "Yamaha Mio M3", "price": 17000000, "category": "matic" },
+    { "id": 12, "name": "Suzuki Address", "price": 16500000, "category": "matic" },
+    { "id": 13, "name": "Suzuki Nex II", "price": 15500000, "category": "matic" },
+    { "id": 14, "name": "Kawasaki Ninja 250", "price": 65000000, "category": "sport" },
+    { "id": 15, "name": "Kawasaki Ninja 400", "price": 95000000, "category": "sport" },
+    { "id": 16, "name": "Yamaha R25", "price": 62000000, "category": "sport" },
+    { "id": 17, "name": "Honda CB150R", "price": 28000000, "category": "sport" },
+    { "id": 18, "name": "Honda CRF 150L", "price": 33000000, "category": "offroad" },
+    { "id": 19, "name": "Yamaha WR 155R", "price": 36000000, "category": "offroad" },
+    { "id": 20, "name": "Honda Supra X", "price": 16000000, "category": "bebek" },
+    { "id": 21, "name": "Honda Sonic 150", "price": 21000000, "category": "bebek" },
+    { "id": 22, "name": "Yamaha MX King", "price": 19000000, "category": "bebek" },
+    { "id": 23, "name": "Suzuki Satria FU", "price": 17500000, "category": "bebek" },
+    { "id": 24, "name": "Honda Genio", "price": 18000000, "category": "matic" },
+    { "id": 25, "name": "Yamaha FreeGo", "price": 21000000, "category": "matic" }
+  ]
+}

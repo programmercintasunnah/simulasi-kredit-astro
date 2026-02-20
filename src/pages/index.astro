@@ -1,0 +1,577 @@
+---
+import Layout from '../layouts/Layout.astro';
+import motorsData from '../data/motors.json';
+
+const motors = motorsData.motors;
+const tenors = [12, 24, 36, 48, 60];
+---
+
+<Layout title="Simulasi Kredit Syariah">
+  <div class="pb-24">
+    <header class="bg-primary-800 text-white p-4 shadow-lg">
+      <div class="max-w-md mx-auto">
+        <h1 class="text-xl font-bold">Simulasi Kredit Syariah</h1>
+        <p class="text-primary-200 text-sm">Kalkulator Cicilan Motor Halal</p>
+      </div>
+    </header>
+
+    <nav class="bg-primary-900 sticky top-0 z-10 shadow-md">
+      <div class="max-w-md mx-auto flex">
+        <button id="tab-calculator" class="flex-1 py-3 text-center font-medium text-white border-b-2 border-white">
+          Kalkulator
+        </button>
+        <button id="tab-reverse" class="flex-1 py-3 text-center font-medium text-primary-300 border-b-2 border-transparent hover:text-white transition">
+          Cari Motor
+        </button>
+      </div>
+    </nav>
+
+    <main class="max-w-md mx-auto p-4">
+      <section id="calculator-section">
+        <div class="bg-gray-900 rounded-xl p-5 shadow-lg border border-gray-800">
+          <h2 class="text-white font-semibold mb-4 flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+            </svg>
+            Hitung Cicilan
+          </h2>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-gray-400 text-sm mb-2">Pilih Motor</label>
+              <select id="motor-select" class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500">
+                <option value="">-- Pilih Motor --</option>
+                {motors.map((motor) => (
+                  <option value={motor.price} data-name={motor.name}>{motor.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-gray-400 text-sm mb-2">Atau Input Manual</label>
+              <input 
+                type="number" 
+                id="harga-motor" 
+                placeholder="Harga Motor (Rp)"
+                class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500"
+              />
+            </div>
+
+            <div>
+              <label class="block text-gray-400 text-sm mb-2">Margin (%)</label>
+              <input 
+                type="number" 
+                id="margin" 
+                placeholder="Contoh: 10"
+                value="10"
+                class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500"
+              />
+            </div>
+
+            <div>
+              <label class="block text-gray-400 text-sm mb-2">Uang Muka (DP %)</label>
+              <input 
+                type="number" 
+                id="dp" 
+                placeholder="Contoh: 20"
+                value="20"
+                class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500"
+              />
+            </div>
+
+            <div>
+              <label class="block text-gray-400 text-sm mb-2">Tenor (Bulan)</label>
+              <div class="grid grid-cols-5 gap-2">
+                {tenors.map((tenor) => (
+                  <button 
+                    class="tenor-btn bg-gray-800 text-white py-2 rounded-lg text-sm font-medium hover:bg-primary-600 transition"
+                    data-tenor={tenor}
+                  >
+                    {tenor}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button 
+              id="calculate-btn"
+              class="w-full bg-primary-600 hover:bg-primary-500 text-white font-semibold py-3 rounded-lg transition shadow-lg"
+            >
+              Hitung Cicilan
+            </button>
+          </div>
+        </div>
+
+        <div id="result-section" class="hidden mt-6">
+          <div class="bg-gray-900 rounded-xl p-5 shadow-lg border border-gray-800">
+            <h3 class="text-white font-semibold mb-4">Hasil Simulasi</h3>
+            
+            <div class="space-y-3">
+              <div class="flex justify-between text-gray-400">
+                <span>Harga Motor</span>
+                <span id="result-harga" class="text-white font-medium">Rp 0</span>
+              </div>
+              <div class="flex justify-between text-gray-400">
+                <span>Uang Muka (DP)</span>
+                <span id="result-dp" class="text-white font-medium">Rp 0</span>
+              </div>
+              <div class="flex justify-between text-gray-400">
+                <span>Margin</span>
+                <span id="result-margin" class="text-white font-medium">Rp 0</span>
+              </div>
+              <div class="border-t border-gray-700 my-3"></div>
+              <div class="flex justify-between text-gray-400">
+                <span>Jumlah Kredit</span>
+                <span id="result-kredit" class="text-white font-medium">Rp 0</span>
+              </div>
+              <div class="border-t border-gray-700 my-3"></div>
+              <div class="flex justify-between items-center">
+                <span class="text-white font-semibold">Cicilan per Bulan</span>
+                <span id="result-cicilan" class="text-primary-400 text-xl font-bold">Rp 0</span>
+              </div>
+              <div class="flex justify-between text-gray-400">
+                <span>Total Pembayaran</span>
+                <span id="result-total" class="text-white font-medium">Rp 0</span>
+              </div>
+            </div>
+
+            <button 
+              id="download-pdf"
+              class="w-full mt-4 bg-green-600 hover:bg-green-500 text-white font-semibold py-3 rounded-lg transition flex items-center justify-center gap-2"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              Download PDF
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section id="reverse-section" class="hidden">
+        <div class="bg-gray-900 rounded-xl p-5 shadow-lg border border-gray-800 mb-6">
+          <h2 class="text-white font-semibold mb-4">Cari Motor Idaman</h2>
+          
+          <div class="mb-4">
+            <label class="block text-gray-400 text-sm mb-2">Mode Pencarian</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button class="reverse-mode-btn bg-primary-600 text-white py-2 rounded-lg text-sm font-medium" data-mode="price">
+                Cari Harga
+              </button>
+              <button class="reverse-mode-btn bg-gray-800 text-gray-400 py-2 rounded-lg text-sm font-medium hover:bg-gray-700" data-mode="tenor">
+                Cari Tenor
+              </button>
+              <button class="reverse-mode-btn bg-gray-800 text-gray-400 py-2 rounded-lg text-sm font-medium hover:bg-gray-700" data-mode="margin">
+                Cari Margin
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <div id="reverse-harga-container">
+              <label class="block text-gray-400 text-sm mb-2">Budget Cicilan per Bulan (Rp)</label>
+              <input 
+                type="number" 
+                id="reverse-cicilan"
+                placeholder="Contoh: 1500000"
+                class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500"
+              />
+            </div>
+
+            <div id="reverse-margin-container" class="hidden">
+              <label class="block text-gray-400 text-sm mb-2">Margin (%)</label>
+              <input 
+                type="number" 
+                id="reverse-margin"
+                placeholder="Contoh: 10"
+                value="10"
+                class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500"
+              />
+            </div>
+
+            <div id="reverse-tenor-container">
+              <label class="block text-gray-400 text-sm mb-2">Tenor (Bulan)</label>
+              <div class="grid grid-cols-5 gap-2">
+                {tenors.map((tenor) => (
+                  <button 
+                    class="reverse-tenor-btn bg-gray-800 text-white py-2 rounded-lg text-sm font-medium hover:bg-primary-600 transition"
+                    data-tenor={tenor}
+                  >
+                    {tenor}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div id="reverse-harga-motor-container" class="hidden">
+              <label class="block text-gray-400 text-sm mb-2">Harga Motor (Rp)</label>
+              <input 
+                type="number" 
+                id="reverse-harga-motor"
+                placeholder="Contoh: 25000000"
+                class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500"
+              />
+            </div>
+
+            <div>
+              <label class="block text-gray-400 text-sm mb-2">DP (%)</label>
+              <input 
+                type="number" 
+                id="reverse-dp"
+                placeholder="Contoh: 20"
+                value="20"
+                class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500"
+              />
+            </div>
+
+            <button 
+              id="reverse-calculate-btn"
+              class="w-full bg-primary-600 hover:bg-primary-500 text-white font-semibold py-3 rounded-lg transition shadow-lg"
+            >
+              Cari
+            </button>
+          </div>
+        </div>
+
+        <div id="reverse-result" class="hidden">
+          <div class="bg-gray-900 rounded-xl p-5 shadow-lg border border-gray-800">
+            <h3 class="text-white font-semibold mb-4">Hasil Pencarian</h3>
+            
+            <div id="reverse-result-content" class="space-y-3">
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <h4 class="text-white font-medium mb-3">Rekomendasi Motor</h4>
+            <div id="motor-recommendations" class="space-y-2">
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</Layout>
+
+<script>
+  import { jsPDF } from 'jspdf';
+  import { calculateCredit, formatRupiah, findMaxPrice, findRequiredTenor, findRequiredMargin } from '../utils/calculations';
+  import motorsData from '../data/motors.json';
+
+  let selectedTenor = 12;
+  let reverseSelectedTenor = 12;
+  let reverseMode = 'price';
+  let currentResult = null;
+
+  const formatNumber = (num: number) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const tabCalculator = document.getElementById('tab-calculator');
+    const tabReverse = document.getElementById('tab-reverse');
+    const calculatorSection = document.getElementById('calculator-section');
+    const reverseSection = document.getElementById('reverse-section');
+
+    tabCalculator?.addEventListener('click', () => {
+      tabCalculator.classList.add('text-white', 'border-b-2', 'border-white');
+      tabCalculator.classList.remove('text-primary-300', 'border-transparent');
+      tabReverse?.classList.add('text-primary-300', 'border-transparent');
+      tabReverse?.classList.remove('text-white', 'border-b-2', 'border-white');
+      calculatorSection?.classList.remove('hidden');
+      reverseSection?.classList.add('hidden');
+    });
+
+    tabReverse?.addEventListener('click', () => {
+      tabReverse.classList.add('text-white', 'border-b-2', 'border-white');
+      tabReverse.classList.remove('text-primary-300', 'border-transparent');
+      tabCalculator?.classList.add('text-primary-300', 'border-transparent');
+      tabCalculator?.classList.remove('text-white', 'border-b-2', 'border-white');
+      reverseSection?.classList.remove('hidden');
+      calculatorSection?.classList.add('hidden');
+    });
+
+    document.querySelectorAll('.tenor-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.tenor-btn').forEach((b) => {
+          b.classList.remove('bg-primary-600');
+          b.classList.add('bg-gray-800');
+        });
+        (e.target as HTMLElement).classList.remove('bg-gray-800');
+        (e.target as HTMLElement).classList.add('bg-primary-600');
+        selectedTenor = parseInt((e.target as HTMLElement).dataset.tenor || '12');
+      });
+    });
+
+    const motorSelect = document.getElementById('motor-select') as HTMLSelectElement;
+    const hargaInput = document.getElementById('harga-motor') as HTMLInputElement;
+
+    motorSelect?.addEventListener('change', () => {
+      if (motorSelect.value) {
+        hargaInput.value = '';
+      }
+    });
+
+    hargaInput?.addEventListener('input', () => {
+      if (hargaInput.value) {
+        motorSelect.value = '';
+      }
+    });
+
+    const calculateBtn = document.getElementById('calculate-btn');
+    calculateBtn?.addEventListener('click', () => {
+      const motorPrice = motorSelect.value ? parseInt(motorSelect.value) : parseInt(hargaInput.value);
+      const margin = parseFloat((document.getElementById('margin') as HTMLInputElement).value) || 0;
+      const dp = parseFloat((document.getElementById('dp') as HTMLInputElement).value) || 0;
+
+      if (!motorPrice || motorPrice <= 0) {
+        alert('Mohon masukkan harga motor yang valid');
+        return;
+      }
+
+      const result = calculateCredit(motorPrice, margin, dp, selectedTenor);
+      currentResult = result;
+
+      const dpAmount = motorPrice * (dp / 100);
+      const jumlahKredit = motorPrice - dpAmount;
+
+      (document.getElementById('result-harga') as HTMLElement).textContent = formatRupiah(result.hargaDasar);
+      (document.getElementById('result-dp') as HTMLElement).textContent = formatRupiah(result.dp);
+      (document.getElementById('result-margin') as HTMLElement).textContent = formatRupiah(result.margin);
+      (document.getElementById('result-kredit') as HTMLElement).textContent = formatRupiah(jumlahKredit);
+      (document.getElementById('result-cicilan') as HTMLElement).textContent = formatRupiah(result.cicilanPerBulan);
+      (document.getElementById('result-total') as HTMLElement).textContent = formatRupiah(result.totalPembayaran);
+
+      document.getElementById('result-section')?.classList.remove('hidden');
+    });
+
+    const downloadPdf = document.getElementById('download-pdf');
+    downloadPdf?.addEventListener('click', () => {
+      if (!currentResult) return;
+
+      const doc = new jsPDF();
+      const margin = parseFloat((document.getElementById('margin') as HTMLInputElement).value) || 0;
+      const dp = parseFloat((document.getElementById('dp') as HTMLInputElement).value) || 0;
+      const motorName = (motorSelect.value && motorSelect.options[motorSelect.selectedIndex]?.dataset.name) || 'Motor';
+
+      doc.setFontSize(18);
+      doc.text('Simulasi Kredit Syariah', 20, 20);
+      
+      doc.setFontSize(12);
+      doc.text(`Nama Motor: ${motorName}`, 20, 35);
+      doc.text(`Tenor: ${selectedTenor} Bulan`, 20, 42);
+      doc.text(`Margin: ${margin}%`, 20, 49);
+      doc.text(`Uang Muka: ${dp}%`, 20, 56);
+      
+      doc.line(20, 60, 190, 60);
+      
+      doc.text('Rincian Pembayaran:', 20, 70);
+      doc.text(`Harga Motor: ${formatRupiah(currentResult.hargaDasar)}`, 20, 80);
+      doc.text(`Uang Muka (DP): ${formatRupiah(currentResult.dp)}`, 20, 87);
+      doc.text(`Margin: ${formatRupiah(currentResult.margin)}`, 20, 94);
+      doc.text(`Jumlah Kredit: ${formatRupiah(currentResult.hargaDasar - currentResult.dp)}`, 20, 101);
+      
+      doc.line(20, 105, 190, 105);
+      
+      doc.setFontSize(14);
+      doc.text(`Cicilan per Bulan: ${formatRupiah(currentResult.cicilanPerBulan)}`, 20, 115);
+      doc.setFontSize(12);
+      doc.text(`Total Pembayaran: ${formatRupiah(currentResult.totalPembayaran)}`, 20, 125);
+      
+      doc.setFontSize(10);
+      doc.text(' Dokumen ini adalah simulasi perhitungan saja', 20, 140);
+      doc.text(` Generated on ${new Date().toLocaleDateString('id-ID')}`, 20, 147);
+
+      doc.save('simulasi-kredit-syariah.pdf');
+    });
+
+    const reverseModeBtns = document.querySelectorAll('.reverse-mode-btn');
+    reverseModeBtns.forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        reverseMode = (e.target as HTMLElement).dataset.mode || 'price';
+        
+        reverseModeBtns.forEach((b) => {
+          b.classList.remove('bg-primary-600', 'text-white');
+          b.classList.add('bg-gray-800', 'text-gray-400');
+        });
+        (e.target as HTMLElement).classList.remove('bg-gray-800', 'text-gray-400');
+        (e.target as HTMLElement).classList.add('bg-primary-600', 'text-white');
+
+        const hargaContainer = document.getElementById('reverse-harga-motor-container');
+        const marginContainer = document.getElementById('reverse-margin-container');
+        const tenorContainer = document.getElementById('reverse-tenor-container');
+        const cicilanContainer = document.getElementById('reverse-harga-container');
+
+        hargaContainer?.classList.add('hidden');
+        marginContainer?.classList.add('hidden');
+        
+        if (reverseMode === 'price') {
+          cicilanContainer?.classList.remove('hidden');
+          tenorContainer?.classList.remove('hidden');
+        } else if (reverseMode === 'tenor') {
+          cicilanContainer?.classList.remove('hidden');
+          hargaContainer?.classList.remove('hidden');
+          marginContainer?.classList.remove('hidden');
+        } else if (reverseMode === 'margin') {
+          cicilanContainer?.classList.remove('hidden');
+          hargaContainer?.classList.remove('hidden');
+          tenorContainer?.classList.remove('hidden');
+        }
+      });
+    });
+
+    document.querySelectorAll('.reverse-tenor-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.reverse-tenor-btn').forEach((b) => {
+          b.classList.remove('bg-primary-600');
+          b.classList.add('bg-gray-800');
+        });
+        (e.target as HTMLElement).classList.remove('bg-gray-800');
+        (e.target as HTMLElement).classList.add('bg-primary-600');
+        reverseSelectedTenor = parseInt((e.target as HTMLElement).dataset.tenor || '12');
+      });
+    });
+
+    const reverseCalcBtn = document.getElementById('reverse-calculate-btn');
+    reverseCalcBtn?.addEventListener('click', () => {
+      const cicilan = parseFloat((document.getElementById('reverse-cicilan') as HTMLInputElement).value) || 0;
+      const margin = parseFloat((document.getElementById('reverse-margin') as HTMLInputElement).value) || 0;
+      const dp = parseFloat((document.getElementById('reverse-dp') as HTMLInputElement).value) || 0;
+      const hargaMotor = parseFloat((document.getElementById('reverse-harga-motor') as HTMLInputElement).value) || 0;
+
+      if (!cicilan || cicilan <= 0) {
+        alert('Mohon masukkan budget cicilan per bulan');
+        return;
+      }
+
+      const resultContent = document.getElementById('reverse-result-content');
+      const recommendations = document.getElementById('motor-recommendations');
+      
+      if (!resultContent || !recommendations) return;
+
+      if (reverseMode === 'price') {
+        const maxPrice = findMaxPrice(cicilan, margin, dp, reverseSelectedTenor);
+        
+        resultContent.innerHTML = `
+          <div class="flex justify-between items-center">
+            <span class="text-gray-400">Budget Cicilan</span>
+            <span class="text-white font-medium">${formatRupiah(cicilan)}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-gray-400">Tenor</span>
+            <span class="text-white font-medium">${reverseSelectedTenor} Bulan</span>
+          </div>
+          <div class="border-t border-gray-700 my-3"></div>
+          <div class="flex justify-between items-center">
+            <span class="text-white font-semibold">Maksimal Harga Motor</span>
+            <span class="text-primary-400 text-xl font-bold">${formatRupiah(maxPrice)}</span>
+          </div>
+        `;
+
+        const filteredMotors = motorsData.motors
+          .filter(m => m.price <= maxPrice)
+          .sort((a, b) => b.price - a.price)
+          .slice(0, 5);
+
+        if (filteredMotors.length === 0) {
+          recommendations.innerHTML = '<p class="text-gray-400 text-sm">Tidak ada motor dalam budget ini</p>';
+        } else {
+          recommendations.innerHTML = filteredMotors.map(motor => `
+            <div class="bg-gray-800 rounded-lg p-3 flex justify-between items-center">
+              <div>
+                <p class="text-white font-medium text-sm">${motor.name}</p>
+                <p class="text-gray-400 text-xs">${motor.category}</p>
+              </div>
+              <span class="text-primary-400 font-medium">${formatRupiah(motor.price)}</span>
+            </div>
+          `).join('');
+        }
+      } else if (reverseMode === 'tenor') {
+        if (!hargaMotor || hargaMotor <= 0) {
+          alert('Mohon masukkan harga motor');
+          return;
+        }
+
+        const requiredTenor = findRequiredTenor(hargaMotor, cicilan, margin, dp);
+        
+        resultContent.innerHTML = `
+          <div class="flex justify-between items-center">
+            <span class="text-gray-400">Budget Cicilan</span>
+            <span class="text-white font-medium">${formatRupiah(cicilan)}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-gray-400">Harga Motor</span>
+            <span class="text-white font-medium">${formatRupiah(hargaMotor)}</span>
+          </div>
+          <div class="border-t border-gray-700 my-3"></div>
+          <div class="flex justify-between items-center">
+            <span class="text-white font-semibold">Tenor yang Dibutuhkan</span>
+            <span class="text-primary-400 text-xl font-bold">${requiredTenor} Bulan</span>
+          </div>
+        `;
+
+        const filteredMotors = motorsData.motors
+          .filter(m => m.price >= hargaMotor * 0.9 && m.price <= hargaMotor * 1.1)
+          .slice(0, 5);
+
+        if (filteredMotors.length === 0) {
+          recommendations.innerHTML = '<p class="text-gray-400 text-sm">Tidak ada motor dengan harga serupa</p>';
+        } else {
+          recommendations.innerHTML = filteredMotors.map(motor => `
+            <div class="bg-gray-800 rounded-lg p-3 flex justify-between items-center">
+              <div>
+                <p class="text-white font-medium text-sm">${motor.name}</p>
+                <p class="text-gray-400 text-xs">${motor.category}</p>
+              </div>
+              <span class="text-primary-400 font-medium">${formatRupiah(motor.price)}</span>
+            </div>
+          `).join('');
+        }
+      } else if (reverseMode === 'margin') {
+        if (!hargaMotor || hargaMotor <= 0) {
+          alert('Mohon masukkan harga motor');
+          return;
+        }
+
+        const requiredMargin = findRequiredMargin(hargaMotor, cicilan, dp, reverseSelectedTenor);
+        
+        resultContent.innerHTML = `
+          <div class="flex justify-between items-center">
+            <span class="text-gray-400">Budget Cicilan</span>
+            <span class="text-white font-medium">${formatRupiah(cicilan)}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-gray-400">Harga Motor</span>
+            <span class="text-white font-medium">${formatRupiah(hargaMotor)}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-gray-400">Tenor</span>
+            <span class="text-white font-medium">${reverseSelectedTenor} Bulan</span>
+          </div>
+          <div class="border-t border-gray-700 my-3"></div>
+          <div class="flex justify-between items-center">
+            <span class="text-white font-semibold">Margin yang Dibutuhkan</span>
+            <span class="text-primary-400 text-xl font-bold">${requiredMargin.toFixed(2)}%</span>
+          </div>
+        `;
+
+        const filteredMotors = motorsData.motors
+          .filter(m => m.price >= hargaMotor * 0.9 && m.price <= hargaMotor * 1.1)
+          .slice(0, 5);
+
+        if (filteredMotors.length === 0) {
+          recommendations.innerHTML = '<p class="text-gray-400 text-sm">Tidak ada motor dengan harga serupa</p>';
+        } else {
+          recommendations.innerHTML = filteredMotors.map(motor => `
+            <div class="bg-gray-800 rounded-lg p-3 flex justify-between items-center">
+              <div>
+                <p class="text-white font-medium text-sm">${motor.name}</p>
+                <p class="text-gray-400 text-xs">${motor.category}</p>
+              </div>
+              <span class="text-primary-400 font-medium">${formatRupiah(motor.price)}</span>
+            </div>
+          `).join('');
+        }
+      }
+
+      document.getElementById('reverse-result')?.classList.remove('hidden');
+    });
+  });
+</script>
