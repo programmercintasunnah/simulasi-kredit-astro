@@ -120,7 +120,7 @@ const tenors = [12, 24, 36, 48, 60];
               <div class="grid grid-cols-5 gap-2">
                 {tenors.map((tenor) => (
                   <button 
-                    class="tenor-btn bg-gray-800 text-white py-2 rounded-lg text-sm font-medium hover:bg-primary-600 transition"
+                    class={`tenor-btn ${tenor === 24 ? 'bg-primary-600' : 'bg-gray-800'} text-white py-2 rounded-lg text-sm font-medium hover:bg-primary-600 transition`}
                     data-tenor={tenor}
                   >
                     {tenor}
@@ -187,22 +187,7 @@ const tenors = [12, 24, 36, 48, 60];
       <section id="reverse-section" class="hidden">
         <div class="bg-gray-900 rounded-xl p-5 shadow-lg border border-gray-800 mb-6">
           <h2 class="text-white font-semibold mb-4">Cari Motor Idaman</h2>
-          
-          <div class="mb-4">
-            <label class="block text-gray-400 text-sm mb-2">Mode Pencarian</label>
-            <div class="grid grid-cols-3 gap-2">
-              <button class="reverse-mode-btn bg-primary-600 text-white py-2 rounded-lg text-sm font-medium" data-mode="price">
-                Cari Harga
-              </button>
-              <button class="reverse-mode-btn bg-gray-800 text-gray-400 py-2 rounded-lg text-sm font-medium hover:bg-gray-700" data-mode="tenor">
-                Cari Tenor
-              </button>
-              <button class="reverse-mode-btn bg-gray-800 text-gray-400 py-2 rounded-lg text-sm font-medium hover:bg-gray-700" data-mode="margin">
-                Cari Margin
-              </button>
-            </div>
-          </div>
-
+           
           <div class="space-y-4">
             <div id="reverse-harga-container">
               <label class="block text-gray-400 text-sm mb-2">Budget Cicilan per Bulan (Rp)</label>
@@ -215,7 +200,7 @@ const tenors = [12, 24, 36, 48, 60];
               />
             </div>
 
-            <div id="reverse-margin-container" class="hidden">
+            <div id="reverse-margin-container">
               <label class="block text-gray-400 text-sm mb-2">Margin</label>
               <div class="grid grid-cols-3 gap-2 mb-2">
                 <button class="reverse-margin-mode-btn bg-gray-800 text-gray-400 py-2 rounded-lg text-sm font-medium hover:bg-gray-700" data-mode="percent">
@@ -241,16 +226,16 @@ const tenors = [12, 24, 36, 48, 60];
                 id="reverse-margin-monthly" 
                 placeholder="Contoh: 200.000"
                 value="2"
-                class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500 hidden"
+                class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500"
               />
             </div>
 
-            <div id="reverse-tenor-container">
+            <div>
               <label class="block text-gray-400 text-sm mb-2">Tenor (Bulan)</label>
               <div class="grid grid-cols-5 gap-2">
                 {tenors.map((tenor) => (
                   <button 
-                    class="reverse-tenor-btn bg-gray-800 text-white py-2 rounded-lg text-sm font-medium hover:bg-primary-600 transition"
+                    class={`reverse-tenor-btn ${tenor === 24 ? 'bg-primary-600' : 'bg-gray-800'} text-white py-2 rounded-lg text-sm font-medium hover:bg-primary-600 transition`}
                     data-tenor={tenor}
                   >
                     {tenor}
@@ -323,8 +308,8 @@ const tenors = [12, 24, 36, 48, 60];
   import { jsPDF } from 'jspdf';
   import { calculateCredit, formatRupiah, findMaxPrice, findRequiredTenor, findRequiredMargin } from '../utils/calculations';
 
-  let selectedTenor = 12;
-  let reverseSelectedTenor = 12;
+  let selectedTenor = 24;
+  let reverseSelectedTenor = 24;
   let reverseMode = 'price';
   let currentResult = null;
   let dpMode = 'amount';
