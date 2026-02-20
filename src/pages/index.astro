@@ -21,7 +21,7 @@ const tenors = [12, 24, 36, 48, 60];
           Kalkulator
         </button>
         <button id="tab-reverse" class="flex-1 py-3 text-center font-medium text-primary-300 border-b-2 border-transparent hover:text-white transition">
-          Cari Motor
+          Simulasi Kredit
         </button>
       </div>
     </nav>
@@ -186,11 +186,23 @@ const tenors = [12, 24, 36, 48, 60];
 
       <section id="reverse-section" class="hidden">
         <div class="bg-gray-900 rounded-xl p-5 shadow-lg border border-gray-800 mb-6">
-          <h2 class="text-white font-semibold mb-4">Cari Motor Idaman</h2>
+          <h2 class="text-white font-semibold mb-4">Cari Motor Sesuai Budget</h2>
            
           <div class="space-y-4">
             <div id="reverse-harga-container">
-              <label class="block text-gray-400 text-sm mb-2">Budget Cicilan per Bulan (Rp)</label>
+              <label class="block text-gray-400 text-sm mb-2">Budget Cicilan per Bulan</label>
+              <select 
+                id="cicilan-select"
+                class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500 mb-2"
+              >
+                <option value="">-- Pilih Cicilan --</option>
+                <option value="1000000">Rp 1.000.000</option>
+                <option value="1200000">Rp 1.200.000</option>
+                <option value="1500000">Rp 1.500.000</option>
+                <option value="1700000">Rp 1.700.000</option>
+                <option value="2000000">Rp 2.000.000</option>
+              </select>
+              <label class="block text-gray-400 text-sm mb-2">Atau Input Manual</label>
               <input 
                 type="text" 
                 inputmode="numeric"
@@ -286,7 +298,7 @@ const tenors = [12, 24, 36, 48, 60];
               id="reverse-calculate-btn"
               class="w-full bg-primary-600 hover:bg-primary-500 text-white font-semibold py-3 rounded-lg transition shadow-lg"
             >
-              Cari
+              Hitung
             </button>
           </div>
         </div>
@@ -297,6 +309,13 @@ const tenors = [12, 24, 36, 48, 60];
             
             <div id="reverse-result-content" class="space-y-3">
             </div>
+
+            <button 
+              id="download-reverse-pdf"
+              class="mt-4 w-full bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 rounded-lg transition"
+            >
+              Download PDF
+            </button>
           </div>
         </div>
       </section>
@@ -616,6 +635,46 @@ const tenors = [12, 24, 36, 48, 60];
       doc.save('simulasi-kredit-syariah.pdf');
     });
 
+    const downloadReversePdf = document.getElementById('download-reverse-pdf');
+    downloadReversePdf?.addEventListener('click', () => {
+      const cicilan = cicilanSelect.value ? parseInt(cicilanSelect.value) : parseFormattedNumber(cicilanInput.value);
+      const margin = parseFloat((document.getElementById('reverse-margin') as HTMLInputElement).value) || 0;
+      const tenor = reverseSelectedTenor;
+      
+      let dpText = '';
+      if (reverseDpMode === 'percent') {
+        const dpPercent = parseFloat((document.getElementById('reverse-dp') as HTMLInputElement).value) || 0;
+        dpText = `${dpPercent}%`;
+      } else {
+        const dpAmount = parseFormattedNumber((document.getElementById('reverse-dp-amount') as HTMLInputElement).value);
+        dpText = formatRupiah(dpAmount);
+      }
+
+      const doc = new jsPDF();
+      
+      doc.setFontSize(18);
+      doc.text('Cari Motor Sesuai Budget', 20, 20);
+      
+      doc.setFontSize(12);
+      doc.text(`Budget Cicilan per Bulan: ${formatRupiah(cicilan)}`, 20, 35);
+      doc.text(`Tenor: ${tenor} Bulan`, 20, 42);
+      doc.text(`Margin: ${margin}%`, 20, 49);
+      doc.text(`Uang Muka: ${dpText}`, 20, 56);
+      
+      doc.line(20, 60, 190, 60);
+      
+      const maxPrice = findMaxPrice(cicilan, margin, parseFloat(document.getElementById('reverse-dp')?.value || '20') / 100, tenor);
+      
+      doc.setFontSize(14);
+      doc.text(`Maksimal Harga Motor: ${formatRupiah(maxPrice)}`, 20, 70);
+      
+      doc.setFontSize(10);
+      doc.text('Dokumen ini adalah simulasi perhitungan saja', 20, 85);
+      doc.text(`Generated on ${new Date().toLocaleDateString('id-ID')}`, 20, 92);
+
+      doc.save('cari-motor-sesuai-budget.pdf');
+    });
+
     const reverseModeBtns = document.querySelectorAll('.reverse-mode-btn');
     reverseModeBtns.forEach((btn) => {
       btn.addEventListener('click', (e) => {
@@ -718,8 +777,32 @@ const tenors = [12, 24, 36, 48, 60];
     });
 
     const reverseCalcBtn = document.getElementById('reverse-calculate-btn');
+
+    const cicilanSelect = document.getElementById('cicilan-select') as HTMLSelectElement;
+    const cicilanInput = document.getElementById('reverse-cicilan') as HTMLInputElement;
+
+    cicilanSelect?.addEventListener('change', () => {
+      if (cicilanSelect.value) {
+        cicilanInput.value = '';
+        cicilanInput.disabled = true;
+        cicilanInput.placeholder = 'Pilih dari dropdown';
+      } else {
+        cicilanInput.disabled = false;
+        cicilanInput.placeholder = 'Contoh: 1.500.000';
+      }
+    });
+
+    cicilanInput?.addEventListener('input', () => {
+      if (cicilanInput.value) {
+        cicilanSelect.value = '';
+        cicilanSelect.disabled = true;
+      } else {
+        cicilanSelect.disabled = false;
+      }
+    });
+
     reverseCalcBtn?.addEventListener('click', () => {
-      const cicilan = parseFormattedNumber((document.getElementById('reverse-cicilan') as HTMLInputElement).value);
+      const cicilan = cicilanSelect.value ? parseInt(cicilanSelect.value) : parseFormattedNumber(cicilanInput.value);
       const hargaMotor = parseFormattedNumber((document.getElementById('reverse-harga-motor') as HTMLInputElement).value);
 
       let marginPercent = 0;
