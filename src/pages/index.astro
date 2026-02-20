@@ -1,8 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import motorsData from '../data/motors.json';
 
-const motors = motorsData.motors;
+const formatRupiah = (num: number) => 'Rp ' + num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+const prices = [5000000, 10000000, 15000000, 20000000, 25000000, 30000000, 35000000, 40000000, 45000000, 50000000];
 const tenors = [12, 24, 36, 48, 60];
 ---
 
@@ -38,11 +38,11 @@ const tenors = [12, 24, 36, 48, 60];
 
           <div class="space-y-4">
             <div>
-              <label class="block text-gray-400 text-sm mb-2">Pilih Motor</label>
+              <label class="block text-gray-400 text-sm mb-2">Pilih Harga</label>
               <select id="motor-select" class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500">
-                <option value="">-- Pilih Motor --</option>
-                {motors.map((motor) => (
-                  <option value={motor.price} data-name={motor.name}>{motor.name}</option>
+                <option value="">-- Pilih Harga --</option>
+                {prices.map((price) => (
+                  <option value={price}>{formatRupiah(price)}</option>
                 ))}
               </select>
             </div>
@@ -240,12 +240,6 @@ const tenors = [12, 24, 36, 48, 60];
             <div id="reverse-result-content" class="space-y-3">
             </div>
           </div>
-
-          <div class="mt-4">
-            <h4 class="text-white font-medium mb-3">Rekomendasi Motor</h4>
-            <div id="motor-recommendations" class="space-y-2">
-            </div>
-          </div>
         </div>
       </section>
     </main>
@@ -255,7 +249,6 @@ const tenors = [12, 24, 36, 48, 60];
 <script>
   import { jsPDF } from 'jspdf';
   import { calculateCredit, formatRupiah, findMaxPrice, findRequiredTenor, findRequiredMargin } from '../utils/calculations';
-  import motorsData from '../data/motors.json';
 
   let selectedTenor = 12;
   let reverseSelectedTenor = 12;
@@ -442,9 +435,8 @@ const tenors = [12, 24, 36, 48, 60];
       }
 
       const resultContent = document.getElementById('reverse-result-content');
-      const recommendations = document.getElementById('motor-recommendations');
       
-      if (!resultContent || !recommendations) return;
+      if (!resultContent) return;
 
       if (reverseMode === 'price') {
         const maxPrice = findMaxPrice(cicilan, margin, dp, reverseSelectedTenor);
@@ -464,25 +456,6 @@ const tenors = [12, 24, 36, 48, 60];
             <span class="text-primary-400 text-xl font-bold">${formatRupiah(maxPrice)}</span>
           </div>
         `;
-
-        const filteredMotors = motorsData.motors
-          .filter(m => m.price <= maxPrice)
-          .sort((a, b) => b.price - a.price)
-          .slice(0, 5);
-
-        if (filteredMotors.length === 0) {
-          recommendations.innerHTML = '<p class="text-gray-400 text-sm">Tidak ada motor dalam budget ini</p>';
-        } else {
-          recommendations.innerHTML = filteredMotors.map(motor => `
-            <div class="bg-gray-800 rounded-lg p-3 flex justify-between items-center">
-              <div>
-                <p class="text-white font-medium text-sm">${motor.name}</p>
-                <p class="text-gray-400 text-xs">${motor.category}</p>
-              </div>
-              <span class="text-primary-400 font-medium">${formatRupiah(motor.price)}</span>
-            </div>
-          `).join('');
-        }
       } else if (reverseMode === 'tenor') {
         if (!hargaMotor || hargaMotor <= 0) {
           alert('Mohon masukkan harga motor');
@@ -506,24 +479,6 @@ const tenors = [12, 24, 36, 48, 60];
             <span class="text-primary-400 text-xl font-bold">${requiredTenor} Bulan</span>
           </div>
         `;
-
-        const filteredMotors = motorsData.motors
-          .filter(m => m.price >= hargaMotor * 0.9 && m.price <= hargaMotor * 1.1)
-          .slice(0, 5);
-
-        if (filteredMotors.length === 0) {
-          recommendations.innerHTML = '<p class="text-gray-400 text-sm">Tidak ada motor dengan harga serupa</p>';
-        } else {
-          recommendations.innerHTML = filteredMotors.map(motor => `
-            <div class="bg-gray-800 rounded-lg p-3 flex justify-between items-center">
-              <div>
-                <p class="text-white font-medium text-sm">${motor.name}</p>
-                <p class="text-gray-400 text-xs">${motor.category}</p>
-              </div>
-              <span class="text-primary-400 font-medium">${formatRupiah(motor.price)}</span>
-            </div>
-          `).join('');
-        }
       } else if (reverseMode === 'margin') {
         if (!hargaMotor || hargaMotor <= 0) {
           alert('Mohon masukkan harga motor');
@@ -551,24 +506,6 @@ const tenors = [12, 24, 36, 48, 60];
             <span class="text-primary-400 text-xl font-bold">${requiredMargin.toFixed(2)}%</span>
           </div>
         `;
-
-        const filteredMotors = motorsData.motors
-          .filter(m => m.price >= hargaMotor * 0.9 && m.price <= hargaMotor * 1.1)
-          .slice(0, 5);
-
-        if (filteredMotors.length === 0) {
-          recommendations.innerHTML = '<p class="text-gray-400 text-sm">Tidak ada motor dengan harga serupa</p>';
-        } else {
-          recommendations.innerHTML = filteredMotors.map(motor => `
-            <div class="bg-gray-800 rounded-lg p-3 flex justify-between items-center">
-              <div>
-                <p class="text-white font-medium text-sm">${motor.name}</p>
-                <p class="text-gray-400 text-xs">${motor.category}</p>
-              </div>
-              <span class="text-primary-400 font-medium">${formatRupiah(motor.price)}</span>
-            </div>
-          `).join('');
-        }
       }
 
       document.getElementById('reverse-result')?.classList.remove('hidden');
