@@ -83,6 +83,7 @@ const tenors = [12, 24, 36, 48, 60];
                 inputmode="numeric"
                 id="margin-monthly" 
                 placeholder="Contoh: 200.000"
+                value="2"
                 class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500"
               />
             </div>
@@ -239,6 +240,7 @@ const tenors = [12, 24, 36, 48, 60];
                 inputmode="numeric"
                 id="reverse-margin-monthly" 
                 placeholder="Contoh: 200.000"
+                value="2"
                 class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500 hidden"
               />
             </div>
@@ -389,12 +391,28 @@ const tenors = [12, 24, 36, 48, 60];
       reverseSection?.classList.remove('hidden');
       calculatorSection?.classList.add('hidden');
 
+      document.querySelectorAll('.reverse-dp-mode-btn').forEach((b) => {
+        b.classList.remove('bg-primary-600', 'text-white');
+        b.classList.add('bg-gray-800', 'text-gray-400');
+      });
+      const activeReverseDpBtn = document.querySelector('.reverse-dp-mode-btn[data-mode="' + reverseDpMode + '"]') as HTMLElement;
+      activeReverseDpBtn?.classList.remove('bg-gray-800', 'text-gray-400');
+      activeReverseDpBtn?.classList.add('bg-primary-600', 'text-white');
+
       const reverseDpInput = document.getElementById('reverse-dp') as HTMLInputElement;
       const reverseDpAmountInput = document.getElementById('reverse-dp-amount') as HTMLInputElement;
       if (reverseDpMode === 'amount') {
         reverseDpInput?.classList.add('hidden');
         reverseDpAmountInput?.classList.remove('hidden');
       }
+
+      document.querySelectorAll('.reverse-margin-mode-btn').forEach((b) => {
+        b.classList.remove('bg-primary-600', 'text-white');
+        b.classList.add('bg-gray-800', 'text-gray-400');
+      });
+      const activeReverseMarginBtn = document.querySelector('.reverse-margin-mode-btn[data-mode="' + reverseMarginMode + '"]') as HTMLElement;
+      activeReverseMarginBtn?.classList.remove('bg-gray-800', 'text-gray-400');
+      activeReverseMarginBtn?.classList.add('bg-primary-600', 'text-white');
 
       const reverseMarginInput = document.getElementById('reverse-margin') as HTMLInputElement;
       const reverseMarginMonthlyInput = document.getElementById('reverse-margin-monthly') as HTMLInputElement;
