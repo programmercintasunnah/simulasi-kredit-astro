@@ -638,15 +638,30 @@ const tenors = [12, 24, 36, 48, 60];
     const downloadReversePdf = document.getElementById('download-reverse-pdf');
     downloadReversePdf?.addEventListener('click', () => {
       const cicilan = cicilanSelect.value ? parseInt(cicilanSelect.value) : parseFormattedNumber(cicilanInput.value);
-      const margin = parseFloat((document.getElementById('reverse-margin') as HTMLInputElement).value) || 0;
       const tenor = reverseSelectedTenor;
       
+      let marginPercent = 0;
+      let marginText = '';
+      if (reverseMarginMode === 'percent') {
+        marginPercent = parseFloat((document.getElementById('reverse-margin') as HTMLInputElement).value) || 0;
+        marginText = `${marginPercent}%`;
+      } else if (reverseMarginMode === 'monthly') {
+        const marginMonthly = parseFormattedNumber((document.getElementById('reverse-margin-monthly') as HTMLInputElement).value);
+        marginText = formatRupiah(marginMonthly) + '/bulan';
+      } else if (reverseMarginMode === 'monthlyPercent') {
+        const marginMonthlyPercent = parseFloat((document.getElementById('reverse-margin-monthly') as HTMLInputElement).value) || 0;
+        marginPercent = marginMonthlyPercent * tenor;
+        marginText = `${marginMonthlyPercent}%/bulan`;
+      }
+      
+      let dpPercent = 0;
       let dpText = '';
       if (reverseDpMode === 'percent') {
-        const dpPercent = parseFloat((document.getElementById('reverse-dp') as HTMLInputElement).value) || 0;
+        dpPercent = parseFloat((document.getElementById('reverse-dp') as HTMLInputElement).value) || 0;
         dpText = `${dpPercent}%`;
       } else {
         const dpAmount = parseFormattedNumber((document.getElementById('reverse-dp-amount') as HTMLInputElement).value);
+        dpPercent = cicilan > 0 ? (dpAmount / cicilan) * 100 : 0;
         dpText = formatRupiah(dpAmount);
       }
 
@@ -658,12 +673,12 @@ const tenors = [12, 24, 36, 48, 60];
       doc.setFontSize(12);
       doc.text(`Budget Cicilan per Bulan: ${formatRupiah(cicilan)}`, 20, 35);
       doc.text(`Tenor: ${tenor} Bulan`, 20, 42);
-      doc.text(`Margin: ${margin}%`, 20, 49);
+      doc.text(`Margin: ${marginText}`, 20, 49);
       doc.text(`Uang Muka: ${dpText}`, 20, 56);
       
       doc.line(20, 60, 190, 60);
       
-      const maxPrice = findMaxPrice(cicilan, margin, parseFloat(document.getElementById('reverse-dp')?.value || '20') / 100, tenor);
+      const maxPrice = findMaxPrice(cicilan, marginPercent, dpPercent / 100, tenor);
       
       doc.setFontSize(14);
       doc.text(`Maksimal Harga Motor: ${formatRupiah(maxPrice)}`, 20, 70);
