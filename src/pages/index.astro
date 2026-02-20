@@ -592,45 +592,124 @@ const tenors = [12, 24, 36, 48, 60];
       if (!currentResult) return;
 
       const doc = new jsPDF();
-      const margin = parseFloat((document.getElementById('margin') as HTMLInputElement).value) || 0;
+      
+      doc.setFillColor(30, 30, 30);
+      doc.rect(0, 0, 210, 40, 'F');
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(22);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Simulasi Kredit Syariah', 105, 20, { align: 'center' });
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Rincian Perhitungan Kredit Motor', 105, 30, { align: 'center' });
+      
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Data Kredit', 20, 55);
+      
+      doc.setDrawColor(200, 200, 200);
+      doc.line(20, 58, 190, 58);
+      
+      doc.setFont('helvetica', 'normal');
       const motorName = motorSelect.value ? (motorSelect.options[motorSelect.selectedIndex]?.text || 'Motor') : 'Input Manual';
-
+      const tenorText = `${selectedTenor} Bulan`;
+      
+      let marginText = '';
+      if (marginMode === 'percent') {
+        const marginVal = parseFloat((document.getElementById('margin') as HTMLInputElement).value) || 0;
+        marginText = `${marginVal}% (Total)`;
+      } else if (marginMode === 'monthly') {
+        const marginMonthly = parseFormattedNumber((document.getElementById('margin-monthly') as HTMLInputElement).value);
+        marginText = `${formatRupiah(marginMonthly)}/bulan`;
+      } else if (marginMode === 'monthlyPercent') {
+        const marginMonthlyPercent = parseFloat((document.getElementById('margin-monthly') as HTMLInputElement).value) || 0;
+        marginText = `${marginMonthlyPercent}%/bulan`;
+      }
+      
       let dpText = '';
       if (dpMode === 'percent') {
         const dpPercent = parseFloat((document.getElementById('dp') as HTMLInputElement).value) || 0;
         dpText = `${dpPercent}%`;
       } else {
-        const dpAmount = parseFloat((document.getElementById('dp-amount') as HTMLInputElement).value) || 0;
+        const dpAmount = parseFormattedNumber((document.getElementById('dp-amount') as HTMLInputElement).value);
         dpText = formatRupiah(dpAmount);
       }
-
-      doc.setFontSize(18);
-      doc.text('Simulasi Kredit Syariah', 20, 20);
       
-      doc.setFontSize(12);
-      doc.text(`Nama Motor: ${motorName}`, 20, 35);
-      doc.text(`Tenor: ${selectedTenor} Bulan`, 20, 42);
-      doc.text(`Margin: ${margin}%`, 20, 49);
-      doc.text(`Uang Muka: ${dpText}`, 20, 56);
+      const dataLines = [
+        ['Nama Motor', motorName],
+        ['Tenor', tenorText],
+        ['Margin', marginText],
+        ['Uang Muka (DP)', dpText]
+      ];
       
-      doc.line(20, 60, 190, 60);
+      let yPos = 70;
+      dataLines.forEach(([label, value]) => {
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 100, 100);
+        doc.text(label, 20, yPos);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont('helvetica', 'bold');
+        doc.text(value, 100, yPos);
+        yPos += 10;
+      });
       
-      doc.text('Rincian Pembayaran:', 20, 70);
-      doc.text(`Harga Motor: ${formatRupiah(currentResult.hargaDasar)}`, 20, 80);
-      doc.text(`Uang Muka (DP): ${formatRupiah(currentResult.dp)}`, 20, 87);
-      doc.text(`Margin: ${formatRupiah(currentResult.margin)}`, 20, 94);
-      doc.text(`Jumlah Kredit: ${formatRupiah(currentResult.hargaDasar - currentResult.dp)}`, 20, 101);
+      yPos += 5;
+      doc.setDrawColor(200, 200, 200);
+      doc.line(20, yPos, 190, yPos);
+      yPos += 15;
       
-      doc.line(20, 105, 190, 105);
-      
+      doc.setFont('helvetica', 'bold');
       doc.setFontSize(14);
-      doc.text(`Cicilan per Bulan: ${formatRupiah(currentResult.cicilanPerBulan)}`, 20, 115);
-      doc.setFontSize(12);
-      doc.text(`Total Pembayaran: ${formatRupiah(currentResult.totalPembayaran)}`, 20, 125);
+      doc.text('Rincian Pembayaran', 20, yPos);
+      yPos += 10;
       
+      doc.setDrawColor(200, 200, 200);
+      doc.line(20, yPos, 190, yPos);
+      yPos += 12;
+      
+      const paymentLines = [
+        ['Harga Motor', formatRupiah(currentResult.hargaDasar)],
+        ['Uang Muka (DP)', formatRupiah(currentResult.dp)],
+        ['Jumlah Kredit', formatRupiah(currentResult.hargaDasar - currentResult.dp)],
+        ['Margin', formatRupiah(currentResult.margin)],
+      ];
+      
+      doc.setFontSize(12);
+      paymentLines.forEach(([label, value]) => {
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 100, 100);
+        doc.text(label, 20, yPos);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont('helvetica', 'bold');
+        doc.text(value, 100, yPos);
+        yPos += 10;
+      });
+      
+      yPos += 5;
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(0.5);
+      doc.line(20, yPos, 190, yPos);
+      yPos += 12;
+      
+      doc.setFillColor(0, 150, 136);
+      doc.roundedRect(20, yPos - 5, 170, 25, 3, 3, 'F');
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(11);
+      doc.text('Cicilan per Bulan', 105, yPos + 5, { align: 'center' });
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text(formatRupiah(currentResult.cicilanPerBulan), 105, yPos + 16, { align: 'center' });
+      
+      yPos += 40;
+      doc.setTextColor(150, 150, 150);
       doc.setFontSize(10);
-      doc.text(' Dokumen ini adalah simulasi perhitungan saja', 20, 140);
-      doc.text(` Generated on ${new Date().toLocaleDateString('id-ID')}`, 20, 147);
+      doc.setFont('helvetica', 'italic');
+      doc.text('Catatan: Dokumen ini adalah simulasi perhitungan saja dan tidak bersifat mengikat.', 105, yPos, { align: 'center' });
+      yPos += 7;
+      doc.text(`Dibuat pada: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, 105, yPos, { align: 'center' });
 
       doc.save('simulasi-kredit-syariah.pdf');
     });
@@ -667,25 +746,75 @@ const tenors = [12, 24, 36, 48, 60];
 
       const doc = new jsPDF();
       
-      doc.setFontSize(18);
-      doc.text('Cari Motor Sesuai Budget', 20, 20);
-      
-      doc.setFontSize(12);
-      doc.text(`Budget Cicilan per Bulan: ${formatRupiah(cicilan)}`, 20, 35);
-      doc.text(`Tenor: ${tenor} Bulan`, 20, 42);
-      doc.text(`Margin: ${marginText}`, 20, 49);
-      doc.text(`Uang Muka: ${dpText}`, 20, 56);
-      
-      doc.line(20, 60, 190, 60);
-      
       const maxPrice = findMaxPrice(cicilan, marginPercent, dpPercent / 100, tenor);
       
-      doc.setFontSize(14);
-      doc.text(`Maksimal Harga Motor: ${formatRupiah(maxPrice)}`, 20, 70);
+      doc.setFillColor(30, 30, 30);
+      doc.rect(0, 0, 210, 40, 'F');
       
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(22);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Cari Motor Sesuai Budget', 105, 20, { align: 'center' });
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Rekomendasi Maksimal Harga Motor', 105, 30, { align: 'center' });
+      
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Budget & Preferensi', 20, 55);
+      
+      doc.setDrawColor(200, 200, 200);
+      doc.line(20, 58, 190, 58);
+      
+      doc.setFont('helvetica', 'normal');
+      const tenorText = `${tenor} Bulan`;
+      
+      const dataLines = [
+        ['Budget Cicilan per Bulan', formatRupiah(cicilan)],
+        ['Tenor', tenorText],
+        ['Margin', marginText],
+        ['Uang Muka (DP)', dpText]
+      ];
+      
+      let yPos = 70;
+      dataLines.forEach(([label, value]) => {
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 100, 100);
+        doc.text(label, 20, yPos);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont('helvetica', 'bold');
+        doc.text(value, 100, yPos);
+        yPos += 10;
+      });
+      
+      yPos += 10;
+      doc.setDrawColor(200, 200, 200);
+      doc.line(20, yPos, 190, yPos);
+      yPos += 15;
+      
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(14);
+      doc.text('Hasil Pencarian', 20, yPos);
+      yPos += 10;
+      
+      doc.setFillColor(0, 150, 136);
+      doc.roundedRect(20, yPos - 5, 170, 30, 3, 3, 'F');
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(12);
+      doc.text('Maksimal Harga Motor yang Bisa Diperoleh', 105, yPos + 5, { align: 'center' });
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.text(formatRupiah(maxPrice), 105, yPos + 20, { align: 'center' });
+      
+      yPos += 45;
+      doc.setTextColor(150, 150, 150);
       doc.setFontSize(10);
-      doc.text('Dokumen ini adalah simulasi perhitungan saja', 20, 85);
-      doc.text(`Generated on ${new Date().toLocaleDateString('id-ID')}`, 20, 92);
+      doc.setFont('helvetica', 'italic');
+      doc.text('Catatan: Dokumen ini adalah simulasi perhitungan saja dan tidak bersifat mengikat.', 105, yPos, { align: 'center' });
+      yPos += 7;
+      doc.text(`Dibuat pada: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, 105, yPos, { align: 'center' });
 
       doc.save('cari-motor-sesuai-budget.pdf');
     });
