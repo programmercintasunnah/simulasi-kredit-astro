@@ -58,13 +58,30 @@ const tenors = [12, 24, 36, 48, 60];
             </div>
 
             <div>
-              <label class="block text-gray-400 text-sm mb-2">Margin (%)</label>
+              <label class="block text-gray-400 text-sm mb-2">Margin</label>
+              <div class="grid grid-cols-3 gap-2 mb-2">
+                <button class="margin-mode-btn bg-primary-600 text-white py-2 rounded-lg text-sm font-medium" data-mode="percent">
+                  Total (%)
+                </button>
+                <button class="margin-mode-btn bg-gray-800 text-gray-400 py-2 rounded-lg text-sm font-medium hover:bg-gray-700" data-mode="monthly">
+                  / Bulan (Rp)
+                </button>
+                <button class="margin-mode-btn bg-gray-800 text-gray-400 py-2 rounded-lg text-sm font-medium hover:bg-gray-700" data-mode="monthlyPercent">
+                  / Bulan (%)
+                </button>
+              </div>
               <input 
                 type="number" 
                 id="margin" 
                 placeholder="Contoh: 10"
                 value="10"
                 class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500"
+              />
+              <input 
+                type="number" 
+                id="margin-monthly" 
+                placeholder="Contoh: 200000"
+                class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500 hidden"
               />
             </div>
 
@@ -89,6 +106,7 @@ const tenors = [12, 24, 36, 48, 60];
                 type="number" 
                 id="dp-amount" 
                 placeholder="Contoh: 5000000"
+                value="2000000"
                 class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500 hidden"
               />
             </div>
@@ -193,13 +211,30 @@ const tenors = [12, 24, 36, 48, 60];
             </div>
 
             <div id="reverse-margin-container" class="hidden">
-              <label class="block text-gray-400 text-sm mb-2">Margin (%)</label>
+              <label class="block text-gray-400 text-sm mb-2">Margin</label>
+              <div class="grid grid-cols-3 gap-2 mb-2">
+                <button class="reverse-margin-mode-btn bg-primary-600 text-white py-2 rounded-lg text-sm font-medium" data-mode="percent">
+                  Total (%)
+                </button>
+                <button class="reverse-margin-mode-btn bg-gray-800 text-gray-400 py-2 rounded-lg text-sm font-medium hover:bg-gray-700" data-mode="monthly">
+                  / Bulan (Rp)
+                </button>
+                <button class="reverse-margin-mode-btn bg-gray-800 text-gray-400 py-2 rounded-lg text-sm font-medium hover:bg-gray-700" data-mode="monthlyPercent">
+                  / Bulan (%)
+                </button>
+              </div>
               <input 
                 type="number" 
                 id="reverse-margin"
                 placeholder="Contoh: 10"
                 value="10"
                 class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500"
+              />
+              <input 
+                type="number" 
+                id="reverse-margin-monthly" 
+                placeholder="Contoh: 200000"
+                class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500 hidden"
               />
             </div>
 
@@ -248,6 +283,7 @@ const tenors = [12, 24, 36, 48, 60];
                 type="number" 
                 id="reverse-dp-amount" 
                 placeholder="Contoh: 5000000"
+                value="2000000"
                 class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500 hidden"
               />
             </div>
@@ -284,6 +320,8 @@ const tenors = [12, 24, 36, 48, 60];
   let currentResult = null;
   let dpMode = 'percent';
   let reverseDpMode = 'percent';
+  let marginMode = 'percent';
+  let reverseMarginMode = 'percent';
 
   const formatNumber = (num: number) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
@@ -347,25 +385,74 @@ const tenors = [12, 24, 36, 48, 60];
       });
     });
 
+    document.querySelectorAll('.margin-mode-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        marginMode = (e.target as HTMLElement).dataset.mode || 'percent';
+        
+        document.querySelectorAll('.margin-mode-btn').forEach((b) => {
+          b.classList.remove('bg-primary-600', 'text-white');
+          b.classList.add('bg-gray-800', 'text-gray-400');
+        });
+        (e.target as HTMLElement).classList.remove('bg-gray-800', 'text-gray-400');
+        (e.target as HTMLElement).classList.add('bg-primary-600', 'text-white');
+
+        const marginInput = document.getElementById('margin') as HTMLInputElement;
+        const marginMonthlyInput = document.getElementById('margin-monthly') as HTMLInputElement;
+        
+        if (marginMode === 'percent') {
+          marginInput.value = '10';
+          marginInput?.classList.remove('hidden');
+          marginMonthlyInput?.classList.add('hidden');
+        } else if (marginMode === 'monthly') {
+          marginMonthlyInput.value = '0';
+          marginInput?.classList.add('hidden');
+          marginMonthlyInput?.classList.remove('hidden');
+        } else if (marginMode === 'monthlyPercent') {
+          marginMonthlyInput.value = '2';
+          marginInput?.classList.add('hidden');
+          marginMonthlyInput?.classList.remove('hidden');
+        }
+      });
+    });
+
     const motorSelect = document.getElementById('motor-select') as HTMLSelectElement;
     const hargaInput = document.getElementById('harga-motor') as HTMLInputElement;
 
     motorSelect?.addEventListener('change', () => {
       if (motorSelect.value) {
         hargaInput.value = '';
+        hargaInput.disabled = true;
+        hargaInput.placeholder = 'Pilih harga dari dropdown';
+      } else {
+        hargaInput.disabled = false;
+        hargaInput.placeholder = 'Harga Motor (Rp)';
       }
     });
 
     hargaInput?.addEventListener('input', () => {
       if (hargaInput.value) {
         motorSelect.value = '';
+        motorSelect.disabled = true;
+      } else {
+        motorSelect.disabled = false;
       }
     });
 
     const calculateBtn = document.getElementById('calculate-btn');
     calculateBtn?.addEventListener('click', () => {
       const motorPrice = motorSelect.value ? parseInt(motorSelect.value) : parseInt(hargaInput.value);
-      const margin = parseFloat((document.getElementById('margin') as HTMLInputElement).value) || 0;
+      
+      let marginPercent = 0;
+      
+      if (marginMode === 'percent') {
+        marginPercent = parseFloat((document.getElementById('margin') as HTMLInputElement).value) || 0;
+      } else if (marginMode === 'monthly') {
+        const marginMonthly = parseFloat((document.getElementById('margin-monthly') as HTMLInputElement).value) || 0;
+        marginPercent = (marginMonthly * selectedTenor / motorPrice) * 100;
+      } else if (marginMode === 'monthlyPercent') {
+        const marginMonthlyPercent = parseFloat((document.getElementById('margin-monthly') as HTMLInputElement).value) || 0;
+        marginPercent = marginMonthlyPercent * selectedTenor;
+      }
       
       let dpPercent = 0;
       let dpAmount = 0;
@@ -388,7 +475,7 @@ const tenors = [12, 24, 36, 48, 60];
         return;
       }
 
-      const result = calculateCredit(motorPrice, margin, dpPercent, selectedTenor);
+      const result = calculateCredit(motorPrice, marginPercent, dpPercent, selectedTenor);
       currentResult = result;
 
       const jumlahKredit = motorPrice - dpAmount;
@@ -518,6 +605,36 @@ const tenors = [12, 24, 36, 48, 60];
         } else {
           dpInput?.classList.add('hidden');
           dpAmountInput?.classList.remove('hidden');
+        }
+      });
+    });
+
+    document.querySelectorAll('.reverse-margin-mode-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        reverseMarginMode = (e.target as HTMLElement).dataset.mode || 'percent';
+        
+        document.querySelectorAll('.reverse-margin-mode-btn').forEach((b) => {
+          b.classList.remove('bg-primary-600', 'text-white');
+          b.classList.add('bg-gray-800', 'text-gray-400');
+        });
+        (e.target as HTMLElement).classList.remove('bg-gray-800', 'text-gray-400');
+        (e.target as HTMLElement).classList.add('bg-primary-600', 'text-white');
+
+        const marginInput = document.getElementById('reverse-margin') as HTMLInputElement;
+        const marginMonthlyInput = document.getElementById('reverse-margin-monthly') as HTMLInputElement;
+        
+        if (reverseMarginMode === 'percent') {
+          marginInput.value = '10';
+          marginInput?.classList.remove('hidden');
+          marginMonthlyInput?.classList.add('hidden');
+        } else if (reverseMarginMode === 'monthly') {
+          marginMonthlyInput.value = '0';
+          marginInput?.classList.add('hidden');
+          marginMonthlyInput?.classList.remove('hidden');
+        } else if (reverseMarginMode === 'monthlyPercent') {
+          marginMonthlyInput.value = '2';
+          marginInput?.classList.add('hidden');
+          marginMonthlyInput?.classList.remove('hidden');
         }
       });
     });
