@@ -324,6 +324,7 @@ const tenors = [12, 24, 36, 48, 60];
   let reverseMarginMode = 'percent';
 
   const formatNumber = (num: number) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const parseFormattedNumber = (str: string) => parseInt(str.replace(/\./g, '')) || 0;
 
   document.addEventListener('DOMContentLoaded', () => {
     const tabCalculator = document.getElementById('tab-calculator');
@@ -438,16 +439,36 @@ const tenors = [12, 24, 36, 48, 60];
       }
     });
 
+    const formatInputAsYouType = (input: HTMLInputElement) => {
+      input.addEventListener('input', () => {
+        const cursorPos = input.selectionStart || 0;
+        const oldValue = input.value;
+        const numericValue = parseFormattedNumber(oldValue);
+        const formattedValue = formatNumber(numericValue);
+        input.value = formattedValue;
+        const diff = formattedValue.length - oldValue.length;
+        input.setSelectionRange(cursorPos + diff, cursorPos + diff);
+      });
+    };
+
+    formatInputAsYouType(hargaInput);
+    formatInputAsYouType(document.getElementById('dp-amount') as HTMLInputElement);
+    formatInputAsYouType(document.getElementById('margin-monthly') as HTMLInputElement);
+    formatInputAsYouType(document.getElementById('reverse-cicilan') as HTMLInputElement);
+    formatInputAsYouType(document.getElementById('reverse-harga-motor') as HTMLInputElement);
+    formatInputAsYouType(document.getElementById('reverse-dp-amount') as HTMLInputElement);
+    formatInputAsYouType(document.getElementById('reverse-margin-monthly') as HTMLInputElement);
+
     const calculateBtn = document.getElementById('calculate-btn');
     calculateBtn?.addEventListener('click', () => {
-      const motorPrice = motorSelect.value ? parseInt(motorSelect.value) : parseInt(hargaInput.value);
+      const motorPrice = motorSelect.value ? parseInt(motorSelect.value) : parseFormattedNumber(hargaInput.value);
       
       let marginPercent = 0;
       
       if (marginMode === 'percent') {
         marginPercent = parseFloat((document.getElementById('margin') as HTMLInputElement).value) || 0;
       } else if (marginMode === 'monthly') {
-        const marginMonthly = parseFloat((document.getElementById('margin-monthly') as HTMLInputElement).value) || 0;
+        const marginMonthly = parseFormattedNumber((document.getElementById('margin-monthly') as HTMLInputElement).value);
         marginPercent = (marginMonthly * selectedTenor / motorPrice) * 100;
       } else if (marginMode === 'monthlyPercent') {
         const marginMonthlyPercent = parseFloat((document.getElementById('margin-monthly') as HTMLInputElement).value) || 0;
@@ -461,7 +482,7 @@ const tenors = [12, 24, 36, 48, 60];
         dpPercent = parseFloat((document.getElementById('dp') as HTMLInputElement).value) || 0;
         dpAmount = motorPrice * (dpPercent / 100);
       } else {
-        dpAmount = parseFloat((document.getElementById('dp-amount') as HTMLInputElement).value) || 0;
+        dpAmount = parseFormattedNumber((document.getElementById('dp-amount') as HTMLInputElement).value);
         dpPercent = motorPrice > 0 ? (dpAmount / motorPrice) * 100 : 0;
       }
 
@@ -641,9 +662,19 @@ const tenors = [12, 24, 36, 48, 60];
 
     const reverseCalcBtn = document.getElementById('reverse-calculate-btn');
     reverseCalcBtn?.addEventListener('click', () => {
-      const cicilan = parseFloat((document.getElementById('reverse-cicilan') as HTMLInputElement).value) || 0;
-      const margin = parseFloat((document.getElementById('reverse-margin') as HTMLInputElement).value) || 0;
-      const hargaMotor = parseFloat((document.getElementById('reverse-harga-motor') as HTMLInputElement).value) || 0;
+      const cicilan = parseFormattedNumber((document.getElementById('reverse-cicilan') as HTMLInputElement).value);
+      const hargaMotor = parseFormattedNumber((document.getElementById('reverse-harga-motor') as HTMLInputElement).value);
+
+      let marginPercent = 0;
+      if (reverseMarginMode === 'percent') {
+        marginPercent = parseFloat((document.getElementById('reverse-margin') as HTMLInputElement).value) || 0;
+      } else if (reverseMarginMode === 'monthly') {
+        const marginMonthly = parseFormattedNumber((document.getElementById('reverse-margin-monthly') as HTMLInputElement).value);
+        marginPercent = hargaMotor > 0 ? (marginMonthly * reverseSelectedTenor / hargaMotor) * 100 : 0;
+      } else if (reverseMarginMode === 'monthlyPercent') {
+        const marginMonthlyPercent = parseFloat((document.getElementById('reverse-margin-monthly') as HTMLInputElement).value) || 0;
+        marginPercent = marginMonthlyPercent * reverseSelectedTenor;
+      }
 
       let dpPercent = 0;
       let dpAmount = 0;
@@ -652,7 +683,7 @@ const tenors = [12, 24, 36, 48, 60];
         dpPercent = parseFloat((document.getElementById('reverse-dp') as HTMLInputElement).value) || 0;
         dpAmount = hargaMotor > 0 ? hargaMotor * (dpPercent / 100) : 0;
       } else {
-        dpAmount = parseFloat((document.getElementById('reverse-dp-amount') as HTMLInputElement).value) || 0;
+        dpAmount = parseFormattedNumber((document.getElementById('reverse-dp-amount') as HTMLInputElement).value);
         dpPercent = hargaMotor > 0 ? (dpAmount / hargaMotor) * 100 : 0;
       }
 
@@ -666,7 +697,7 @@ const tenors = [12, 24, 36, 48, 60];
       if (!resultContent) return;
 
       if (reverseMode === 'price') {
-        const maxPrice = findMaxPrice(cicilan, margin, dpPercent, reverseSelectedTenor);
+        const maxPrice = findMaxPrice(cicilan, marginPercent, dpPercent, reverseSelectedTenor);
         
         resultContent.innerHTML = `
           <div class="flex justify-between items-center">
@@ -689,7 +720,7 @@ const tenors = [12, 24, 36, 48, 60];
           return;
         }
 
-        const requiredTenor = findRequiredTenor(hargaMotor, cicilan, margin, dpPercent);
+        const requiredTenor = findRequiredTenor(hargaMotor, cicilan, marginPercent, dpPercent);
         
         resultContent.innerHTML = `
           <div class="flex justify-between items-center">
