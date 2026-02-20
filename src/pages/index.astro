@@ -349,12 +349,28 @@ const tenors = [12, 24, 36, 48, 60];
     });
 
     const initInputVisibility = () => {
+      document.querySelectorAll('.dp-mode-btn').forEach((b) => {
+        b.classList.remove('bg-primary-600', 'text-white');
+        b.classList.add('bg-gray-800', 'text-gray-400');
+      });
+      const activeDpBtn = document.querySelector('.dp-mode-btn[data-mode="' + dpMode + '"]') as HTMLElement;
+      activeDpBtn?.classList.remove('bg-gray-800', 'text-gray-400');
+      activeDpBtn?.classList.add('bg-primary-600', 'text-white');
+
       const dpInput = document.getElementById('dp') as HTMLInputElement;
       const dpAmountInput = document.getElementById('dp-amount') as HTMLInputElement;
       if (dpMode === 'amount') {
         dpInput?.classList.add('hidden');
         dpAmountInput?.classList.remove('hidden');
       }
+
+      document.querySelectorAll('.margin-mode-btn').forEach((b) => {
+        b.classList.remove('bg-primary-600', 'text-white');
+        b.classList.add('bg-gray-800', 'text-gray-400');
+      });
+      const activeMarginBtn = document.querySelector('.margin-mode-btn[data-mode="' + marginMode + '"]') as HTMLElement;
+      activeMarginBtn?.classList.remove('bg-gray-800', 'text-gray-400');
+      activeMarginBtn?.classList.add('bg-primary-600', 'text-white');
 
       const marginInput = document.getElementById('margin') as HTMLInputElement;
       const marginMonthlyInput = document.getElementById('margin-monthly') as HTMLInputElement;
