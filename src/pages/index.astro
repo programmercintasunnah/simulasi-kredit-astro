@@ -69,13 +69,27 @@ const tenors = [12, 24, 36, 48, 60];
             </div>
 
             <div>
-              <label class="block text-gray-400 text-sm mb-2">Uang Muka (DP %)</label>
+              <label class="block text-gray-400 text-sm mb-2">Uang Muka (DP)</label>
+              <div class="grid grid-cols-2 gap-2 mb-2">
+                <button class="dp-mode-btn bg-primary-600 text-white py-2 rounded-lg text-sm font-medium" data-mode="percent">
+                  Persen (%)
+                </button>
+                <button class="dp-mode-btn bg-gray-800 text-gray-400 py-2 rounded-lg text-sm font-medium hover:bg-gray-700" data-mode="amount">
+                  Nominal (Rp)
+                </button>
+              </div>
               <input 
                 type="number" 
                 id="dp" 
                 placeholder="Contoh: 20"
                 value="20"
                 class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500"
+              />
+              <input 
+                type="number" 
+                id="dp-amount" 
+                placeholder="Contoh: 5000000"
+                class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500 hidden"
               />
             </div>
 
@@ -214,13 +228,27 @@ const tenors = [12, 24, 36, 48, 60];
             </div>
 
             <div>
-              <label class="block text-gray-400 text-sm mb-2">DP (%)</label>
+              <label class="block text-gray-400 text-sm mb-2">DP</label>
+              <div class="grid grid-cols-2 gap-2 mb-2">
+                <button class="reverse-dp-mode-btn bg-primary-600 text-white py-2 rounded-lg text-sm font-medium" data-mode="percent">
+                  Persen (%)
+                </button>
+                <button class="reverse-dp-mode-btn bg-gray-800 text-gray-400 py-2 rounded-lg text-sm font-medium hover:bg-gray-700" data-mode="amount">
+                  Nominal (Rp)
+                </button>
+              </div>
               <input 
                 type="number" 
                 id="reverse-dp"
                 placeholder="Contoh: 20"
                 value="20"
                 class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500"
+              />
+              <input 
+                type="number" 
+                id="reverse-dp-amount" 
+                placeholder="Contoh: 5000000"
+                class="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500 hidden"
               />
             </div>
 
@@ -254,6 +282,8 @@ const tenors = [12, 24, 36, 48, 60];
   let reverseSelectedTenor = 12;
   let reverseMode = 'price';
   let currentResult = null;
+  let dpMode = 'percent';
+  let reverseDpMode = 'percent';
 
   const formatNumber = (num: number) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
@@ -293,6 +323,30 @@ const tenors = [12, 24, 36, 48, 60];
       });
     });
 
+    document.querySelectorAll('.dp-mode-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        dpMode = (e.target as HTMLElement).dataset.mode || 'percent';
+        
+        document.querySelectorAll('.dp-mode-btn').forEach((b) => {
+          b.classList.remove('bg-primary-600', 'text-white');
+          b.classList.add('bg-gray-800', 'text-gray-400');
+        });
+        (e.target as HTMLElement).classList.remove('bg-gray-800', 'text-gray-400');
+        (e.target as HTMLElement).classList.add('bg-primary-600', 'text-white');
+
+        const dpInput = document.getElementById('dp') as HTMLInputElement;
+        const dpAmountInput = document.getElementById('dp-amount') as HTMLInputElement;
+        
+        if (dpMode === 'percent') {
+          dpInput?.classList.remove('hidden');
+          dpAmountInput?.classList.add('hidden');
+        } else {
+          dpInput?.classList.add('hidden');
+          dpAmountInput?.classList.remove('hidden');
+        }
+      });
+    });
+
     const motorSelect = document.getElementById('motor-select') as HTMLSelectElement;
     const hargaInput = document.getElementById('harga-motor') as HTMLInputElement;
 
@@ -312,17 +366,31 @@ const tenors = [12, 24, 36, 48, 60];
     calculateBtn?.addEventListener('click', () => {
       const motorPrice = motorSelect.value ? parseInt(motorSelect.value) : parseInt(hargaInput.value);
       const margin = parseFloat((document.getElementById('margin') as HTMLInputElement).value) || 0;
-      const dp = parseFloat((document.getElementById('dp') as HTMLInputElement).value) || 0;
+      
+      let dpPercent = 0;
+      let dpAmount = 0;
+      
+      if (dpMode === 'percent') {
+        dpPercent = parseFloat((document.getElementById('dp') as HTMLInputElement).value) || 0;
+        dpAmount = motorPrice * (dpPercent / 100);
+      } else {
+        dpAmount = parseFloat((document.getElementById('dp-amount') as HTMLInputElement).value) || 0;
+        dpPercent = motorPrice > 0 ? (dpAmount / motorPrice) * 100 : 0;
+      }
 
       if (!motorPrice || motorPrice <= 0) {
         alert('Mohon masukkan harga motor yang valid');
         return;
       }
 
-      const result = calculateCredit(motorPrice, margin, dp, selectedTenor);
+      if (dpAmount > motorPrice) {
+        alert('Uang Muka tidak boleh lebih besar dari harga motor');
+        return;
+      }
+
+      const result = calculateCredit(motorPrice, margin, dpPercent, selectedTenor);
       currentResult = result;
 
-      const dpAmount = motorPrice * (dp / 100);
       const jumlahKredit = motorPrice - dpAmount;
 
       (document.getElementById('result-harga') as HTMLElement).textContent = formatRupiah(result.hargaDasar);
@@ -341,8 +409,16 @@ const tenors = [12, 24, 36, 48, 60];
 
       const doc = new jsPDF();
       const margin = parseFloat((document.getElementById('margin') as HTMLInputElement).value) || 0;
-      const dp = parseFloat((document.getElementById('dp') as HTMLInputElement).value) || 0;
-      const motorName = (motorSelect.value && motorSelect.options[motorSelect.selectedIndex]?.dataset.name) || 'Motor';
+      const motorName = motorSelect.value ? (motorSelect.options[motorSelect.selectedIndex]?.text || 'Motor') : 'Input Manual';
+
+      let dpText = '';
+      if (dpMode === 'percent') {
+        const dpPercent = parseFloat((document.getElementById('dp') as HTMLInputElement).value) || 0;
+        dpText = `${dpPercent}%`;
+      } else {
+        const dpAmount = parseFloat((document.getElementById('dp-amount') as HTMLInputElement).value) || 0;
+        dpText = formatRupiah(dpAmount);
+      }
 
       doc.setFontSize(18);
       doc.text('Simulasi Kredit Syariah', 20, 20);
@@ -351,7 +427,7 @@ const tenors = [12, 24, 36, 48, 60];
       doc.text(`Nama Motor: ${motorName}`, 20, 35);
       doc.text(`Tenor: ${selectedTenor} Bulan`, 20, 42);
       doc.text(`Margin: ${margin}%`, 20, 49);
-      doc.text(`Uang Muka: ${dp}%`, 20, 56);
+      doc.text(`Uang Muka: ${dpText}`, 20, 56);
       
       doc.line(20, 60, 190, 60);
       
@@ -422,12 +498,46 @@ const tenors = [12, 24, 36, 48, 60];
       });
     });
 
+    document.querySelectorAll('.reverse-dp-mode-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        reverseDpMode = (e.target as HTMLElement).dataset.mode || 'percent';
+        
+        document.querySelectorAll('.reverse-dp-mode-btn').forEach((b) => {
+          b.classList.remove('bg-primary-600', 'text-white');
+          b.classList.add('bg-gray-800', 'text-gray-400');
+        });
+        (e.target as HTMLElement).classList.remove('bg-gray-800', 'text-gray-400');
+        (e.target as HTMLElement).classList.add('bg-primary-600', 'text-white');
+
+        const dpInput = document.getElementById('reverse-dp') as HTMLInputElement;
+        const dpAmountInput = document.getElementById('reverse-dp-amount') as HTMLInputElement;
+        
+        if (reverseDpMode === 'percent') {
+          dpInput?.classList.remove('hidden');
+          dpAmountInput?.classList.add('hidden');
+        } else {
+          dpInput?.classList.add('hidden');
+          dpAmountInput?.classList.remove('hidden');
+        }
+      });
+    });
+
     const reverseCalcBtn = document.getElementById('reverse-calculate-btn');
     reverseCalcBtn?.addEventListener('click', () => {
       const cicilan = parseFloat((document.getElementById('reverse-cicilan') as HTMLInputElement).value) || 0;
       const margin = parseFloat((document.getElementById('reverse-margin') as HTMLInputElement).value) || 0;
-      const dp = parseFloat((document.getElementById('reverse-dp') as HTMLInputElement).value) || 0;
       const hargaMotor = parseFloat((document.getElementById('reverse-harga-motor') as HTMLInputElement).value) || 0;
+
+      let dpPercent = 0;
+      let dpAmount = 0;
+      
+      if (reverseDpMode === 'percent') {
+        dpPercent = parseFloat((document.getElementById('reverse-dp') as HTMLInputElement).value) || 0;
+        dpAmount = hargaMotor > 0 ? hargaMotor * (dpPercent / 100) : 0;
+      } else {
+        dpAmount = parseFloat((document.getElementById('reverse-dp-amount') as HTMLInputElement).value) || 0;
+        dpPercent = hargaMotor > 0 ? (dpAmount / hargaMotor) * 100 : 0;
+      }
 
       if (!cicilan || cicilan <= 0) {
         alert('Mohon masukkan budget cicilan per bulan');
@@ -439,7 +549,7 @@ const tenors = [12, 24, 36, 48, 60];
       if (!resultContent) return;
 
       if (reverseMode === 'price') {
-        const maxPrice = findMaxPrice(cicilan, margin, dp, reverseSelectedTenor);
+        const maxPrice = findMaxPrice(cicilan, margin, dpPercent, reverseSelectedTenor);
         
         resultContent.innerHTML = `
           <div class="flex justify-between items-center">
@@ -462,7 +572,7 @@ const tenors = [12, 24, 36, 48, 60];
           return;
         }
 
-        const requiredTenor = findRequiredTenor(hargaMotor, cicilan, margin, dp);
+        const requiredTenor = findRequiredTenor(hargaMotor, cicilan, margin, dpPercent);
         
         resultContent.innerHTML = `
           <div class="flex justify-between items-center">
@@ -485,7 +595,7 @@ const tenors = [12, 24, 36, 48, 60];
           return;
         }
 
-        const requiredMargin = findRequiredMargin(hargaMotor, cicilan, dp, reverseSelectedTenor);
+        const requiredMargin = findRequiredMargin(hargaMotor, cicilan, dpPercent, reverseSelectedTenor);
         
         resultContent.innerHTML = `
           <div class="flex justify-between items-center">
